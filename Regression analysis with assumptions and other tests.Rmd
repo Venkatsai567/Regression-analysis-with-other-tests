@@ -1,0 +1,806 @@
+---
+title: "CIA 1"
+author: "venkata sai krishna Nivarthi"
+date: "29/07/2021"
+output: html_document
+---
+
+#Problem statement- An insurance company with different type of customers from different regions with different designations both male and female are present, so to check the relationship between the customer life time value with different variables, we need to check the relationship how dependent variable is associated with the different independent variables(for metrics), and checking whether there is relationship between the customer life time variable(dependent variable) and other independent variables like income, monthly premium auto, months since last claim, months since last inception, no of open complaints, no of policies, and total claim amount as variables from the dataset. 
+ 
+#Objective
+#1)Predict Customer Life-time Value (CLV )for an Auto Insurance Company
+#2)To know which independent variables (Scale variables) show relationship among the customer lifetime value variable (dependent variable).
+#3)To know how much the independent variable contributing to the customer life time value.
+#4)To know whether linearity is present among the independent variables.
+#5)To know whether there exists multicollinearity or not.
+#6)To find whether the model is good or not for implementation
+
+
+#The lifetime value of a customer, or customer lifetime value (CLV), represents the total amount of money a customer is expected to spend in business, or on products, during their lifetime. This is an important figure to know because it helps company to make decisions about how much money to invest in acquiring new customers and retaining existing ones.
+
+
+#Importing the dataset and storing it as data1 and viewing the dataset
+```{r}
+data1=read.csv("C:\\Users\\VENKATA SAI\\Desktop\\MLA-Supervised(R)\\Customer_Purchase-Marketing-Analysis.csv")
+#data1
+
+#View(data1)
+
+```
+
+#Understanding the dataset with the structure and dimensions
+```{r}
+# Data Understanding
+dim(data1)
+str(data1)
+
+```
+#There are 9134 Observations of 24 Variable
+#There are mix of categorical and continous DataType.
+#Dependent Variable is Customer Life Time Value as we have to predict the CLV.
+#Independent Variables are: Customer, StateCustomerLifetimeValue, Response, Coverage, Education, EffectiveToDate, EmploymentStatus, Gender, Income, LocationCode, MaritalStatus, MonthlyPremiumAuto, MonthsSinceLastClaim, MonthsSincePolicyInception, NumberofOpenComplaints, NumberofPoliciesPolicyType, Policy, RenewOfferType, SalesChannel, TotalClaimAmountVehicleClass, VehicleSize
+#Continues Independent Variables are : CustomerLifetimeValue, Income,MonthlyPremiumAuto, MonthsSinceLastClaim, MonthsSincePolicyInception, NumberofOpenComplaints, NumberofPolicies, TotalClaimAmount
+#There are no null values, so no further action required to replace missing or null values.
+
+
+#checking the response variable highest and lowest values
+```{r}
+range(data1$Customer.Lifetime.Value)
+
+```
+#Checking whether there are null values or not
+#Checking the datatypes of the column variables
+```{r}
+
+sum(is.na(data1))
+
+sapply(data1, class)
+
+```
+#so there are 0 null values, we can continue towards the next step
+
+#sapply() function to count the number of observations with each feature that contains.
+#Checking the null values of each variable
+```{r}
+
+sapply(data1, function(x) sum(is.na(x)))
+
+```
+#There are no null values with regards with each variable
+
+
+#Similarly, the number of unique observations per column is revealed below.
+#This gives length of unique observations for each column variable
+```{r}
+
+sapply(data1, function(x) length(unique(x)))
+
+```
+
+#Using the missmap() function under the Amelia package, the visualization of the amount of missing and observed values per features is observed below. 
+#This shows the missing and observed values in the form of visualization
+```{r}
+
+library(Amelia)
+missmap(data1, main = "Missing Values vs. Observed")
+
+```
+
+#There are no null values
+
+
+```{r}
+
+hist(data1$Customer.Lifetime.Value, col = "darkorange", xlab = "CLV")
+
+```
+#There are a LOT of Customers with low CLV. Very few customers with high CLV.This can be visually understood using the Histogram.
+#These results indicate a distribution that is heavily skewed with a very large tail.
+#This means that the distribution of CLV is positively skewed (as expected) and is heavily Leptokurtic
+#distribution and have more outliers (extreme values)
+
+
+#Plotting the graphs of customer life time value with different continous variables to find out the linearity
+```{r}
+
+
+plot(x=data1$Monthly.Premium.Auto, y=data1$Customer.Lifetime.Value, cex=1, col='blue',xlab="MonthlyPremiumAuto", ylab="CustomerLifetimeValue",
+       main="Scatterplot of MPA vs CLV")
+
+hist(data1$Monthly.Premium.Auto, col = "red", xlab = "Monthly Premium Auto")
+```
+
+#Monthly premiums follow a trend similar to CLV although the distribution is NOT as skewed or as long tailed as CLV. This can be visually seen in the Histogram.
+#There is no linearity between Customer lifetime value and monthly premium auto as the variables dont follow any strainght line or curve
+```{r}
+
+plot(x=data1$Total.Claim.Amount, y=data1$Customer.Lifetime.Value, col="red", cex=1, xlab="TotalClaimAmount", ylab="CustomerLifetimeValue",
+     main="Scatterplot of TCA vs CLV")
+
+hist(data1$Total.Claim.Amount, col = "orange", xlab = "Total Claim Amount")
+
+```
+#Total claim amounts also follow a trend similar to CLV and MPA although the distribution is not as skewed or as long tailed as MPA. This can be visually seen in the Histogram
+
+#There is no lienarity between customer lifetime value and total claim amount as the variables dont follow any strainght line or curve
+
+```{r}
+
+plot(data1$Income, data1$Customer.Lifetime.Value, col="red", cex=1, xlab="Income", ylab="CustomerLifetimeValue",main="Scatterplot of Income vs CLV")
+
+```
+#There is no relationship between Customer lifetime value and income, and there is no linearity between the variables as the variables dont follow any straight line or curve
+
+
+```{r}
+plot(data1$Months.Since.Last.Claim, data1$Customer.Lifetime.Value, col="yellow", cex=1, xlab="MonthsSinceLastClaim", ylab="CustomerLifetimeValue",main="Scatterplot of MonthsSinceLastClaim vs CLV")
+
+```
+#There is no relationship between Customer lifetime value and months since last claim, and there is no linearity between the variables as the variables dont follow any straight line or curve
+
+```{r}
+plot(data1$Months.Since.Policy.Inception, data1$Customer.Lifetime.Value, col="green", cex=1, xlab="MonthsSinceLastClaim", ylab="CustomerLifetimeValue",main="Scatterplot of MonthsSincePolicyInception vs CLV")
+
+```
+
+#There is no relationship between Customer lifetime value and income, and there is no linearity between the variables as the variables dont follow any straight line or curve
+
+```{r}
+
+plot(data1$Number.of.Open.Complaints, data1$Customer.Lifetime.Value, col="skyblue", cex=1, xlab="NumberofOpenComplaints", ylab="CustomerLifetimeValue",main="Scatterplot of NumberofOpenComplaints vs CLV")
+
+```
+##There is no relationship between Customer lifetime value and No of open complaints , and there is no linearity between the variables as the variables dont follow any straight line or curve
+# We can say that the complaints are 0 when compared to other
+
+```{r}
+plot(data1$Number.of.Policies, data1$Customer.Lifetime.Value, col="lightgreen", cex=1, xlab="NumberofPolicies", ylab="CustomerLifetimeValue",main="Scatterplot of NumberofPolicies vs CLV")
+
+```
+
+##There is no relationship between Customer lifetime value and no of policies, and there is no linearity between the variables as the variables dont follow any straight line or curve
+
+
+#Inferential statistics
+
+#The most obvious candidate for Dependent Variable is CLV (CustomerLifetimeValue). This also makes sense from a Business Perspective as we want to understand what contributes to making a high value customer (Descriptive analysis) and maybe later on predict who is going to be high value customer (Predictive analysis)
+
+```{r}
+library(ggplot2)
+ggplot(data1, aes(data1$Coverage, data1$Customer.Lifetime.Value, fill = data1$Coverage)) + 
+  geom_boxplot() + 
+  labs(x="Coverage",y = "Customer Life Time Value", fill="Coverage") + 
+  ggtitle("Visualization of CLV wrt Coverage")
+
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the coverage plans including basic, extended and premium 
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+#the median values for all the coverage plans lies below 20,000 CLV
+
+```{r}
+ggplot(data1, aes(data1$Education, data1$Customer.Lifetime.Value, fill = Education)) + 
+  geom_boxplot() + 
+  labs(x="Education",y = "Customer Life Time Value", fill="Education") + 
+  ggtitle("Visualization of CLV wrt Education")
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the education levels including bachelor, college, high school and master
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+
+```{r}
+ggplot(data1, aes(data1$EmploymentStatus, data1$Customer.Lifetime.Value, fill = data1$EmploymentStatus)) + 
+  geom_boxplot() + 
+  labs(x="Employment Status",y = "Customer Life Time Value", fill="Employment Status") + 
+  ggtitle("Visualization of CLV wrt Employment Status")
+
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the levels of employment status like disabled, employed, medical leave, retired and unemployed
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+
+```{r}
+
+#plot(data1, aes(data1$Gender,data1$Customer.Lifetime.Value, fill = data1$Gender)) + 
+#  geom_boxplot() + 
+#  labs(x="Gender",y = "Customer Life Time Value", fill="Gender") + 
+#  ggtitle("Visualization of CLV wrt Gender")
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the levels namely male and female
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+
+```{r}
+ggplot(data1, aes(data1$Location.Code,data1$Customer.Lifetime.Value, fill = data1$Location.Code)) + 
+  geom_boxplot() + 
+  labs(x="Location",y = "Customer Life Time Value", fill="Location") + 
+  ggtitle("Visualization of CLV wrt Location")
+
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the regions namely rural, urban and suburban
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+
+```{r}
+ggplot(data1, aes(data1$Marital.Status, data1$Customer.Lifetime.Value, fill = data1$Marital.Status)) + 
+  geom_boxplot() + 
+  labs(x="Marital Status",y = "Customer Life Time Value", fill="Marital Status") + 
+  ggtitle("Visualization of CLV wrt Marital Status")
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the levels of marital status like divorced, married and single
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+
+```{r}
+ggplot(data1, aes(data1$Policy.Type, data1$Customer.Lifetime.Value, fill = data1$Policy.Type)) + 
+  geom_boxplot() + 
+  labs(x="Policy Type",y = "Customer Life Time Value", fill="Policy Type") + 
+  ggtitle("Visualization of CLV wrt Policy Type")
+
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the levels policy like corporate, personal and special
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+
+```{r}
+
+ggplot(data1, aes(data1$Renew.Offer.Type, data1$Customer.Lifetime.Value, fill = data1$Renew.Offer.Type)) + 
+  geom_boxplot() + 
+  labs(x="Renew Offer Type",y = "Customer Life Time Value", fill="Renew Offer Type") + 
+  ggtitle("Visualization of CLV wrt Renew Offer Type")
+
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all types of offers like 1,2,3,4 offers
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+
+```{r}
+ggplot(data1, aes(data1$Sales.Channel, data1$Customer.Lifetime.Value, fill = data1$Sales.Channel)) + 
+  geom_boxplot() + 
+  labs(x="Sales Channel",y = "Customer Life Time Value", fill="Sales Channel") + 
+  ggtitle("Visualization of CLV wrt Sales Channel")
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the sales channel like through agent, branch, call center, and web
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+
+```{r}
+ggplot(data1, aes(data1$Vehicle.Class, data1$Customer.Lifetime.Value, fill = data1$Vehicle.Class)) + 
+  geom_boxplot() + 
+  labs(x="Vehicle Class",y = "Customer Life Time Value", fill="Vehicle Class") + 
+  ggtitle("Visualization of CLV wrt Vehicle Class")
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the vehicle classes like 4 door, luxury car, luxury SUV, sports car, SUV, two-door car
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+
+
+```{r}
+ggplot(data1, aes(data1$Vehicle.Size, data1$Customer.Lifetime.Value, fill = data1$Vehicle.Size)) + 
+  geom_boxplot() + 
+  labs(x="Vehicle Size",y = "Customer Life Time Value", fill="Vehicle Size") + 
+  ggtitle("Visualization of CLV wrt Vehicle Size")
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the sizes of vehicle like large, medium and small sizes
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+```{r}
+
+ggplot(data1, aes(data1$State, data1$Customer.Lifetime.Value, fill = data1$State)) + 
+  geom_boxplot() + 
+  labs(x="State",y = "Customer Life Time Value", fill="State") + 
+  ggtitle("Visualization of CLV wrt State")
+
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the states like arizona, california, nevada, oregon, washington
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+```{r}
+ggplot(data1, aes(data1$Policy, data1$Customer.Lifetime.Value, fill = data1$Policy)) + 
+  geom_boxplot() + 
+  labs(x="Policy",y = "Customer Life Time Value", fill="policy") + 
+  ggtitle("Visualization of CLV wrt Policy")
+
+```
+#An outlier is an observation that lies an abnormal distance from other values in a random sample from a population
+#There exists a outliers in all the policies including corporate, special and personal
+#So there is no normality between the variables the reason maybe due to bad data or random variation
+
+
+#Correlation test to find the relation ship between the dependent and independent variables
+```{r}
+
+cor.test(data1$Monthly.Premium.Auto,data1$Customer.Lifetime.Value)
+cor.test(data1$Total.Claim.Amount,data1$Customer.Lifetime.Value)
+cor.test(data1$Income,data1$Customer.Lifetime.Value)
+cor.test(data1$Months.Since.Last.Claim,data1$Customer.Lifetime.Value)
+cor.test(data1$Months.Since.Policy.Inception,data1$Customer.Lifetime.Value)
+cor.test(data1$Number.of.Open.Complaints,data1$Customer.Lifetime.Value)
+cor.test(data1$Number.of.Policies,data1$Customer.Lifetime.Value)
+
+```
+#Null hypothesis- true correlation is equal to 0(there is no relationship between the variables)
+#Alternate hypothesis- true correlation is not equal to 0(there is a relationship between the variables)
+#For the values less than 0.05, we reject the null hypothesis and accept alternate hypothesis, so there is a relationship between Customer life time value and monthly premium auto, Total Claim Amount,Number of Open Complaints, income, no of policies
+#Other variables have very minimal relationship between the variables
+
+```{r}
+#correlation
+library(corrplot)
+cor1=cor(data1[,c(3,10,13,14,15,16,17,22)])
+corrplot(cor1)
+
+#print(cor1)
+```
+## From the correlation, we can know which variables are highly correlated and which are less correlated i.e, we can know the relationship between the variables.The blue color represent high correlation as if one variable increases, the other also increases, in this data set, if monthly premium auto increaes then total claim amountincreases.
+##And the white boxes represents no correlation i.e, the value is 0, this says that if one value increases or decreases, there is no change in the other value.
+##The red color boxes represents that the corrrelation value is equal to -1 as one variable increases then the other variable will decrease and vice versa.
+
+
+#Splitting the dataset into train and test
+```{r}
+
+library(caTools)
+set.seed(100) #we use this for same sampling(random sampling)
+split1=sample.split(data1$Customer, SplitRatio = 0.70)
+summary(split1) #false is test and true is train dataset
+datatest=subset(data1,split1==FALSE)  #false means it will create the test data
+datatrain=subset(data1, split1== TRUE)  #true means it will create the train data
+dim(datatest)  #dimensions of datatest
+dim(datatrain)  #dimensions of the datatrain
+
+
+```
+
+#Regression
+#The goal of the Linear regression is to find the best fit line that can accurately predict the output for the continuous dependent variable.
+#Removing qualitative variables because Linear Regression works best when variables are quantitative/numeric in nature. We have only 8 continuous independed variables.
+```{r}
+
+reg1= lm(datatrain$Customer.Lifetime.Value ~datatrain$Income+
+           datatrain$Monthly.Premium.Auto+
+           datatrain$Months.Since.Last.Claim+
+           datatrain$Months.Since.Policy.Inception+
+           datatrain$Number.of.Open.Complaints+
+           datatrain$Number.of.Policies+
+           datatrain$Total.Claim.Amount, data = datatrain) 
+summary(reg1)
+
+
+```
+#Null Hypothesis - There is no relationship between the dependent and independent variables.(Model is not good fit)
+#Alternate Hypothesis - At least one of the independent variables are significant and have relationship the CLV. (Model is good fit)
+#so the p value is less than 0.05, we reject the null hypothesis, and accept the alternate hypothesis, this means that there is a relation ship between the independent and dependent variables.so from this we can say that monthly premium auto, no of open complaints, no of policies and total claim amount depends on Customer life time value and other variables are independent of customer life time value.
+#However R squared is very low, only 15.7% of the variance found in the CLV can be explained by Income, MPA, MonthsSinceLastClaim, MonthsSincePolicyInception, NumberofOpenComplaints, NumberofPolicies,and total claim amount.
+#Adjusted R squared is 0.1537 which is less than R squared.
+#Residual standard error is 6235 which is very very high, so it means the actual CLV will deviate from the true regression line by approximately 6235 on an average. The smaller the standard error, the less the spread and the more likely it is that any sample mean is close to the population mean. A small standard error is thus a Good Thing.
+#Gap between R-squared and Adjusted R-squared is very small, which is good. Typically the more non-significant variables you add into the model, the gap between two increases.
+#F-statistic: 169.8 - The higher the F-statistic, the closer to a significant model. So F-statistic is high means it is very significant model.
+
+
+#Rerun the model by taking variable name as reg2 by taking only significant independent variables
+#There are more than one insignificant variables in the model, so need to run the model again with only significant variables
+```{r}
+
+
+reg2= lm(datatrain$Customer.Lifetime.Value ~
+           datatrain$Monthly.Premium.Auto+
+           datatrain$Number.of.Open.Complaints+
+           datatrain$Number.of.Policies+
+           datatrain$Total.Claim.Amount, data = datatrain) 
+summary(reg2)
+
+
+```
+#The estimated regression line equation can be written as follow:
+#CLV = 671.69 + 81.4 MPA - 243.4 NoOC + 79.0 NoP - 0.9 TCA
+
+##Null Hypothesis - There is no relationship between the dependent and independent variables.(Model is not good fit)
+#Alternate Hypothesis - At least one of the independent variables are significant and have relationship the CLV. (Model is good fit)
+
+#so the p value is less than 0.05, we reject the null hypothesis, and accept the alternate hypothesis, this means that there is a relation ship between the independent and dependent variables.so from this we can say that monthly premium auto, no of open complaints, no of policies and total claim amount depends on Customer life time value.
+
+#Coefficients of Independent Variables :-
+#i. MonthlyPremiumAuto : 81.4800. One unit increase in MonthlyPremiumAuto will increase CLV by 81.4800 units
+#ii. NumberofOpenComplaints : -234.4827. One unit increase in NumberofOpenComplaints will decrease CLV by -234.4827 units
+#iii. NumberofPolicies : 79.3149. One unit increase in NumberofPolicies will increase CLV by 79.3149 units
+#iv. TotalClaimAmount : -0.9736. one unit increase in TotalClaimAmount will decrease by -0.9736
+
+#So the customers having more number of policies with high monthly premium will add more value to company.
+#On the other hand, customer's Open Complaints and More Claim Amount will decrease the CLV.
+
+#R squared is 0.1565 which means 15.65% of dependent variable is explained by independent variable.
+#Adjusted R squared is 0.156 which is almost equal to R squared.
+
+
+#Plotting the regression equation
+```{r}
+plot(reg2)
+
+```
+## The below plot is also used to find the Outliers
+```{r}
+library(car)
+outliers=outlierTest(reg2)
+outliers
+influenceIndexPlot(reg2)
+```
+
+#Removing the outliers and rerunning the data again
+```{r}
+data1[c(6253,7284,7304,8826,7557,5125,2909,80,3761,6585),]=NA
+data1=na.omit(data1)
+dim(data1)
+
+
+```
+
+#Predicting the Customer lifetime value of first 10 rows using the testing data
+```{r}
+predictCLV = predict(reg2,datatest)  
+#print predicted CLV.
+print(predictCLV[1:10])
+
+```
+
+#Printing the customer lifetime value actual data
+```{r}
+
+#printing actual CLV
+actualCLV=(data1$Customer.Lifetime.Value[1:10])
+print(actualCLV)
+
+
+```
+
+#Converting both predicted and actual values into the dataframe for better understanding
+```{r}
+
+results=cbind(predictCLV,actualCLV)
+colnames(results)=c('predicted','actual')
+results=as.data.frame(results)
+print(head(results))
+
+```
+#We can see that there is a hige difference between the predicted and actual values
+
+#Checking the differenc between the predicted and actual values using residuals
+```{r}
+
+residualsCLV = residuals(reg2)
+print(residualsCLV[1:10])
+
+```
+##Converting predicte actual and residual values into the dataframe for better understanding
+```{r}
+results1=cbind(predictCLV, actualCLV, residualsCLV)
+#print(results1)
+colnames(results1)=c('predicted','actual','residuals')
+results1=as.data.frame(results1)
+print(head(results1))
+
+```
+#We can see that there is a lot of difference betwee the predicted and actual values, so there is more gap between predicted and actual values
+
+#Check the normality of Error/Residual Term (Linear Regression assumes that error are normally distributed.)
+```{r}
+#Normality
+shapiro.test(reg2$residuals[0:5000])
+
+```
+
+#Nullhypothess - Errors are normally distributed.
+#Alternatehypothesis - Errors are not normally distributed.
+#p-value< 0.05, Null Hypotheses get rejected, and so the errors are not normally distributed.
+
+
+#Visualising the residuals using histogram
+```{r}
+
+hist(residualsCLV,col = "green")
+
+```
+#There is no normality
+
+
+# Checking the normality of residuals
+# As the output is in the form of normal my variables for the problem statement is valid
+```{r}
+qqnorm(reg2$residuals, col= 'blue')
+qqline(reg2$residuals, col= 'red')
+
+
+```
+#This graph saya there is no normality, as the graph is not in the straight line
+
+
+# Detecting multicollinearity - checking correlation between independent variables.
+
+#In our model, only those independent variable should exist which are not correlated with each other. This is done using VIF.
+
+
+## Multi colinearity
+# For computing multicolinearity we need to install CAR library
+# If vif is < 2.5 it is small model saying that there is no multi colinearity problem 
+# If vif is < 4 it is small model saying that there is no mmulti colinearity problem 
+```{r}
+
+# Variance Inflation Factors
+library(car)
+vif(reg2)
+
+```
+#Variance inflation factor (VIF) is a measure of the amount of multicollinearity in a set of multiple regression variables.
+
+#If there is high correlation between two independent variables (high multicollinearity), then you will not be able to seperate out the impact of individual independent variable on depended variable.
+#Due to multicolinearity we can't define the complete impact of only one independent variable on the dependent variable.
+
+#So from this we can say that there is no multi collinearity
+
+
+#Detecting Homoscedasticity - Having the same scatter
+
+#Null Hypothesis - Homoscedasticity is present in Residuals.
+#Alternate hypothesis - Heteroscadasticity is present in residuals.
+#This is done by Breusch-Pagan test.
+```{r}
+library(lmtest)
+bptest(reg2)
+
+```
+# as p value is lesser than 0.05 we will be reject the null hypothesis and accept the alternate hypothesis, i.e, data is hetroscadisticity
+
+
+
+# Detecting Autocorrelation
+#the degree of correlation between the values of the same variables across different observations in the data
+
+#This is done Durbin-Watson Test If D-W Statistic is around 2, then we have autocorrelation in model. and away from 2 means no autocorrelation.
+```{r}
+#autocorrelation
+dwt(reg2)
+
+```
+#Here D-W Statistic is 2.00644, so there is autocorrelation in the model.
+
+
+ 
+#AIC stands for (Akaike's Information Criteria), a metric developped by the Japanese Statistician, Hirotugu Akaike, 1970. The basic idea of AIC is to penalize the inclusion of additional variables to a model. It adds a penalty that increases the error when including additional terms. The lower the AIC, the better the model.
+#BIC (or Bayesian information criteria) is a variant of AIC with a stronger penalty for including additional variables to the model.
+
+```{r}
+AIC(reg2)
+BIC(reg2)
+
+#we need to use library(metrics) to find RMSE
+library(Metrics) 
+rmse(predictCLV,datatest$Customer.Lifetime.Value)
+```
+#The AIC, BIC values are  very high, so model is very complex
+
+
+#Root Mean Squared Error (RMSE), which measures the average error performed by the model in predicting the outcome for an observation. Mathematically, the RMSE is the square root of the mean squared error (MSE), which is the average squared difference between the observed actual outome values and the values predicted by the model. So, MSE = mean((observeds - predicteds)^2) and RMSE = sqrt(MSE). The lower the RMSE, the better the model.
+
+# Here the RMSE Value is 7583.129 which is high indicates that the model is not better fit
+
+
+#Conclusion and Summary
+
+#Now we can say that the model is not good according to the AIC,BIC AND RMSE
+#There are many outliers and R Square is also very low this shows that there is not much variation on dependent variable
+#There are a lot of Customers with low CLV. Very few customers with high CLV.
+#Customers who have taken Basic Insurance for their vehicle are more valuable then Extended or Premium Insurance Policy holders.
+#Educated Employed customers (with a bachelors or equivalent degree) are more valuable than Retired, Unemployed or Disabled Customers.
+#Gender has no role to play in determining the value of a customer. Both Male and Female looks valuable.
+#Rural customers are LESS valuable than Urban customers.
+#Customers having their own Personal Policy are more valuable to company then Corporate and Special Insurance policy holder.
+#Offers 1 and Offer 2 attracts more customers.
+#Call Center is not performing well compared to other channels throughout the country (in terms of high value customers)
+#Customers having Mid Size vehicles, Four-Door car or SUV are more valuable.
+#California customers are adding more value to the company.
+#The customers having more number of policies with high monthly premium will add more value to company. On the other hand, customer's Open Complaints and More Claim Amount will decrease the CLV.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
